@@ -1,0 +1,91 @@
+Source: cnbiextra
+Section: libs
+Priority: extra
+Maintainer: Michael Pereira <michael.pereira@epfl.ch>
+Build-Depends: debhelper (>= 7), autotools-dev, libcnbiloop-dev, liblpttrigger0-dev, libdrawtk-dev | libdrawtk0-dev, libsdl-mixer1.2-dev
+Standards-Version: 3.8.3
+Homepage: http://www.mtvl.org/cnbitk
+
+Package: libcnbiprotocol
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Homepage: http://www.mtvl.org/cnbitk
+Description: CNBI Toolkit Protocol libraries
+ Core components of the CNBI Toolkit Loop.
+ 
+Package: libcnbiprotocol-dev
+Section: libdevel
+Architecture: any
+Depends: libcnbiprotocol(= ${binary:Version}), ${misc:Depends}
+Homepage: http://www.mtvl.org/cnbitk
+Description: CNBI Toolkit Protocol libraries
+ Core components of the CNBI Toolkit Protocol.
+ .
+ This package contains the files needed to compile and link programs which
+ use cnbiprotocol.
+
+Package: cnbiprotocols
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Homepage: http://www.mtvl.org/cnbitk
+Description: CNBI Toolkit Protocols binaries
+ Core components of the CNBI Toolkit Loop.
+
+Package: libcnbismr
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Homepage: http://www.mtvl.org/cnbitk
+Description: CNBI Toolkit SMR libraries
+ Core components of the CNBI Toolkit Loop.
+ 
+Package: libcnbismr-dev
+Section: libdevel
+Architecture: any
+Depends: libcnbismr(= ${binary:Version}), ${misc:Depends}, libdrawtk-dev | libdrawtk0-dev
+Homepage: http://www.mtvl.org/cnbitk
+Description: CNBI Toolkit SMR libraries
+ Core components of the CNBI Toolkit Protocol.
+ .
+ This package contains the files needed to compile and link programs which
+ use cnbismr.
+
+Package: libfeslanguage
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Homepage: http://www.mtvl.org/cnbitk
+Description: CNBI Toolkit Motionstim8 communication library
+ A small C library to control the Motionstim8 stimulator.
+
+Package: libfeslanguage-dev
+Section: libdevel
+Architecture: any
+Depends: libfeslanguage(= ${binary:Version}), ${misc:Depends}
+Homepage: http://www.mtvl.org/cnbitk
+Description: CNBI Toolkit Motionstim8 communication library
+ A small C library to control the Motionstim8 stimulator.
+ .
+ This package contains the files needed to compile and link programs which
+ use feslanguage.
+
+Package: librexlanguage
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Homepage: http://www.mtvl.org/cnbitk
+Description: CNBI Toolkit Rex exoskeleton communication library
+ A small C library to control the Rex exoskeleton.
+
+Package: librexlanguage-dev
+Section: libdevel
+Architecture: any
+Depends: librexlanguage(= ${binary:Version}), ${misc:Depends}
+Homepage: http://www.mtvl.org/cnbitk
+Description: CNBI Toolkit Rex exoskeleton library
+ A small C library to control the Rex exoskeleton.
+ .
+ This package contains the files needed to compile and link programs which
+ use rexlanguage.

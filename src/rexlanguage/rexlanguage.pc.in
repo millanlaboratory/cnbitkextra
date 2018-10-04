@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: librexlanguage
+Description: REX exoskeleton language library
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lrexlanguage
+Cflags: -I${includedir}/rexlanguage

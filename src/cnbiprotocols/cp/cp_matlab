@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ "z$1" = "z" ]; then
+	echo "Usage: cp_matlab FUNCTION"
+	echo "Example: cp_matlab 'ndf_checkloop'"
+	exit 1;
+fi
+matlab=`which matlab`;
+
+if [ "z$matlab" = "z" ]; then
+	echo "Error: matlab not installed"
+	exit 2;
+fi
+	
+date=`date +%Y%m%d%H%M%S`
+logfile="$date.cp_matlab.log"
+echo "[cp_matlab] Matlab log: $logfile"
+
+matlab v=syslib -nodesktop -nojvm -nosplash -logfile $logfile -r $1
+stty echo

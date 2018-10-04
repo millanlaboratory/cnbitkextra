@@ -1,0 +1,450 @@
+#!/usr/bin/perl -w
+#  Copyright (C) 2009-2011  EPFL (Ecole Polytechnique Fédérale de Lausanne)
+#  EPFL CNBI team <support.cnbi@epfl.ch>
+#  Original version by Michele Tavella 
+#  Modified by Tom Carlson, November 2011
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+use strict;
+use warnings;
+use List::Util qw(sum);
+use Getopt::Long;
+
+my $usage = 0;
+my $verbose = 0;
+my $expert = 0;
+my $xdftype = 'gdf';
+my $user_xml = 0;
+my $user_modality = 0;
+my $user_block = 0;
+my $user_taskset = 0;
+my $quiet_info = 0;
+my $no_msg_first = 0;
+
+GetOptions('xdf|x=s' => \$xdftype, 
+           'expert|e' => \$expert, 
+           'h|help' => \$usage, 
+           'xml|f=s' => \$user_xml, 
+           'verbose|v' => \$verbose, 
+           'modality|m=s' => \$user_modality, 
+           'block|b=s' => \$user_block, 
+           'taskset|t=s' => \$user_taskset, 
+           'quiet|q' => \$quiet_info,
+           'nomsg|n' => \$no_msg_first);
+
+if($xdftype ne 'bdf' && $xdftype ne 'gdf') {
+	die "Error: XDF type not recognized\n";
+}
+
+if($usage) {
+	printf "cp_launcher [OPTIONS]...\n\n";
+	printf "  -h --help                    print this message and exit\n";
+	printf "  -b --block BLOCK             e.g. mi OR errp\n";
+	printf "  -t --taskset TASKSET         e.g. mi_rhlh\n";
+	printf "  -x --xdf XDFTYPE             sets the XDF type for saving data: bdf or gdf (default)\n";
+	printf "  -f --xml XML_FILE            \n";
+	printf "  -m --modality MODALITY       e.g. online OR offline\n";
+        printf "  -n --nomsg                   No 'are you ready' message for the first time\n";
+	printf "  -q --quiet                   don't display hints\n";
+	printf "  -v --verbose                 enable verbose debugging mode\n";
+	printf "  -e --expert                  enable expert mode\n";
+	exit(0);
+}
+
+if($expert == 0 && $quiet_info == 0) {
+	my $cmd_info = 'zenity --warning ' .
+		'--title "CnbiTk Protocol Launcher - Welcome" ' .
+		'--text "Welcome to the CnbiTk Protocol Launcher.\n\n'.
+		'You will be able to:\n' . 
+		'1. Select and XML file\n' .
+		'2. Select a modality between online and offline\n' .
+		'3. Select a block like mi (Motor Imagery)\n' .
+		'4. Select a taskset like mirhlh (Right vs Left Hand)\n' .
+		'5. Run the protocol multiple times\n\n' .
+		'You need to run the full CnbiTk loop for this thing to work.\n' .
+		'In case of problems, get in touch with support.cnbi@epfl.ch."';
+	`$cmd_info`;
+	die unless ($? == 0);
+}
+
+if($user_xml eq 0) {
+		my $cmd_xml = 'cd ~/; zenity --file-selection --file-filter=*.xml ' .
+			'--title "CnbiTk Protocol Launcher - XML Configuration"';
+		$user_xml = `$cmd_xml`;
+		exit(0) unless ($? == 0);
+		chomp($user_xml);
+}
+exit(0) unless ($user_xml);
+print "XML configuration: $user_xml\n";
+
+my $user_path = `dirname $user_xml`;
+chomp($user_path);
+
+my $cmd_validate = "ccfg_validate $user_xml | grep Exception";
+my $user_validate = `$cmd_validate`;
+
+if($user_validate) {
+	my $cmd_error = 'zenity --error  ' .
+		'--title "CnbiTk Protocol Launcher - XML Error" ' . 
+		'--text="The file you have selected does not appear to be in good XML format. ' .
+		'Try to open the file in Firefox and see where the error is.\n\n' .
+		'Please consider getting in touch with support.cnbi@epfl.ch if you ' .
+		'feel like everything is correct but the file does not pass the check"';
+	system($cmd_error);
+	exit(1);
+}
+
+
+my $cmd_blocks_ofline = 'ccfg_cli -Fb -x ' . $user_xml;
+my $user_blocks_ofline = `$cmd_blocks_ofline`;
+chomp($user_blocks_ofline);
+my @list_blocks_ofline = split(/\n/, $user_blocks_ofline);
+
+my $cmd_blocks_oflineu = 'ccfg_cli -FbU -x ' . $user_xml;
+my $user_blocks_oflineu = `$cmd_blocks_oflineu`;
+chomp($user_blocks_oflineu);
+my @list_blocks_oflineu = split(/\n/, $user_blocks_oflineu);
+
+if($verbose == 1) {
+	print "Available offline blocks:\n";
+	print " @list_blocks_ofline\n";
+	print " @list_blocks_oflineu\n";
+}
+
+my $cmd_blocks_online = 'ccfg_cli -Nb -x ' . $user_xml;
+my $user_blocks_online = `$cmd_blocks_online`;
+chomp($user_blocks_online);
+my @list_blocks_online = split(/\n/, $user_blocks_online);
+
+my $cmd_blocks_onlineu = 'ccfg_cli -NbU -x ' . $user_xml;
+my $user_blocks_onlineu = `$cmd_blocks_onlineu`;
+chomp($user_blocks_onlineu);
+my @list_blocks_onlineu = split(/\n/, $user_blocks_onlineu);
+	
+if($verbose == 1) {
+	print "Available online blocks:\n";
+	print " @list_blocks_online\n";
+	print " @list_blocks_onlineu\n";
+}
+
+my $cmd_modality = 'zenity --list --radiolist ' .
+	'--width=400 --height=300 ' .
+	'--title "CnbiTk Protocol Launcher - Experiment Modality" ' .
+	'--text "Select the modality for the experiment:" ' .
+	'--column Pick --column Modality --column Description ';
+if($cmd_blocks_ofline) {
+	$cmd_modality = $cmd_modality . 
+	'FALSE offline "Run manual control" ';
+}
+if($cmd_blocks_online) {
+	$cmd_modality = $cmd_modality . 
+	'FALSE online  "Run MI BCI control" ';
+}
+
+if($user_modality eq 0) {
+	$user_modality= `$cmd_modality`;
+	exit(0) unless ($? == 0);
+	chomp($user_modality);
+}
+exit(0) unless ($user_modality);
+
+print "Modality: $user_modality\n";
+
+
+# my $user_block = '';
+my $cmd_block = 'zenity --list --radiolist ' .
+	'--width=400 --height=300 ' .
+	'--title "CnbiTk Protocol Launcher - Experiment Block " ' .
+	'--text "Select the block for the experiment:" ' .
+	'--column Pick --column Block --column Description ';
+
+my @list_block;
+my @list_blocku;
+if($user_modality eq "online") {
+	@list_block = @list_blocks_online;
+	@list_blocku = @list_blocks_onlineu;
+} else {
+	@list_block = @list_blocks_ofline;
+	@list_blocku = @list_blocks_oflineu;
+}
+
+for(my $i = 0; $i < @list_block; $i++){
+	my $taskset = $list_block[$i];
+	my $description = $list_blocku[$i];
+	$cmd_block = $cmd_block . 
+		'FALSE ' . $taskset . ' ' . $description . ' ';
+}
+
+if ($user_block eq 0) {
+	$user_block = `$cmd_block`;
+	exit(0) unless ($? == 0);
+	chomp($user_block);
+}
+exit(0) unless ($user_block);
+
+print "Block: $user_block\n";
+
+my $cmd_tasks = 'ccfg_cli -b -x ' . $user_xml;
+my $cmd_tasksu = 'ccfg_cli -bU -x ' . $user_xml;
+if($user_modality eq "online") {
+	$cmd_tasks = $cmd_tasks . ' -N ';
+	$cmd_tasksu = $cmd_tasksu . ' -N ';
+} else {
+	$cmd_tasks = $cmd_tasks . ' -F ';
+	$cmd_tasksu = $cmd_tasksu . ' -F ';
+}
+
+$cmd_tasks = $cmd_tasks . ' -t ' . $user_block;
+my $user_tasks = `$cmd_tasks`;
+chomp($user_tasks);
+my @list_tasks = split(/\n/, $user_tasks);
+
+$cmd_tasksu = $cmd_tasksu . ' -t ' . $user_block;
+my $user_tasku = `$cmd_tasksu`;
+chomp($user_tasku);
+my @list_tasksu = split(/\n/, $user_tasku);
+
+if($verbose == 1) {
+	print "Available tasks:\n";
+	print " @list_tasks\n";
+	print " @list_tasksu\n";
+}
+
+# my $user_taskset = '';
+my $cmd_taskset = 'zenity --list --radiolist ' .
+	'--width=400 --height=300 ' .
+	'--title "CnbiTk Protocol Launcher - Experiment Task" ' .
+	'--text "Select the task for the experiment:" ' .
+	'--column Pick --column Task --column Description ';
+
+for(my $i = 0; $i < @list_tasks; $i++){
+	my $taskset = $list_tasks[$i];
+	my $description = $list_tasksu[$i];
+	$cmd_taskset = $cmd_taskset . 
+		'FALSE ' . $taskset . ' ' . $description . ' ';
+}
+
+if ($user_taskset eq 0) {
+	$user_taskset = `$cmd_taskset`;
+	exit(0) unless ($? == 0);
+	chomp($user_taskset);
+}
+exit(0) unless ($user_taskset);
+
+print "User selection:\n";
+print "  Experiment:  $user_path\n";
+print "  Path:        $user_path\n";
+print "  XML file:    $user_xml\n";
+print "  Modality:    $user_modality\n";
+print "  Block:       $user_block\n";
+print "  Taskset:     $user_taskset\n";
+
+my $cmd_loadconfig = 'cl_init -x ' . $user_xml . ' -l -B ' . $user_block .
+	' -T ' . $user_taskset;
+if($user_modality eq "online") {
+	$cmd_loadconfig = $cmd_loadconfig . ' -N';
+} else {
+	$cmd_loadconfig = $cmd_loadconfig . ' -F';
+}
+
+print "$cmd_loadconfig \n";
+
+my $status_loadconfig=`$cmd_loadconfig`;
+if($? != 0) {
+	my $cmd_rcperror= 'zenity --error ' .
+	'--title "CnbiTk Protocol Launcher - Configuration error" ' .
+	'--text "Something went wrong. ' . 
+	'Most probably the loop is not running or the loop ' . 
+	'configuration has not been unloaded."';
+	`$cmd_rcperror`;
+	die "Error: RPC/Init, probaly the loop is not running";
+}
+
+my $bin_protocol_cmd = 'ccfg_cli -x ' . $user_xml . ' -p -B ' . $user_block;
+if($user_modality eq "online") {
+	$bin_protocol_cmd .= ' -N';
+} else {
+	$bin_protocol_cmd .= ' -F';
+}
+
+
+my $bin_protocol = `$bin_protocol_cmd`;
+chomp($bin_protocol);
+print "Protocol is: '$bin_protocol'\n";
+
+my $wait_loop = 1;
+my $first_time_loop = 1;
+while($wait_loop) {
+	my $cmd_protocol;
+	if($bin_protocol) {
+		$cmd_protocol = 'zenity --question ' .
+		'--title "CnbiTk Protocol Launcher" ' .
+		'--text "Ready to run the ' . $bin_protocol . ' protocol?\n\n' .
+		'Press Yes to run the protocol, No to terminate."';
+	} else { 
+		$cmd_protocol = 'zenity --warning ' .
+		'--title "CnbiTk Protocol Launcher" ' .
+		'--text "Looks like no protocol is defined. Normally this means you ' .
+		'are a developer and you want to run something custom once the loop ' .
+		'is started.\n\n' .
+		'If you are an experimenter, then the XML file is corrupt\n\n' .
+		'Press Ok to continue without protocol, the Esc key to terminate."';
+	}
+
+	my $ret_cmd_protocol=0;
+        if (!$first_time_loop || ($first_time_loop && !$no_msg_first)){
+		`$cmd_protocol`;
+		$ret_cmd_protocol=$?;
+        }
+
+	if($ret_cmd_protocol != 0) {
+		$wait_loop = 0;
+	} else {
+		my $xdf_basename_cmd = 'ccfg_cli -x ' . $user_xml .  
+		' -M ' . $user_modality . 
+		' -t ' . $user_block .  
+		' -T ' . $user_taskset .  ' -a';
+		my $xdf_basename = `$xdf_basename_cmd`;
+		chomp($xdf_basename);
+
+		my $xdf_logline_cmd = 'ccfg_cli -x ' . $user_xml .  
+			' -M ' . $user_modality . 
+			' -t ' . $user_block .  
+			' -T ' . $user_taskset .  ' -l';
+		my $xdf_logline = `$xdf_logline_cmd`;
+		chomp($xdf_logline);
+
+		my $xdf_logfilename_cmd = 'ccfg_cli -x ' . $user_xml .  
+			' -M ' . $user_modality . 
+			' -t ' . $user_block .  
+			' -T ' . $user_taskset .  ' -o';
+		my $xdf_logfilename = `$xdf_logfilename_cmd`;
+		chomp($xdf_logfilename);
+
+		my $xdf_filename = $xdf_basename . '.' . $xdftype;
+
+		print "XDF settings from XML:\n";
+		print "  XDF filename: $xdf_filename\n";
+		print "  Log filename: $xdf_logfilename\n";
+		print "  Log line:     $xdf_logline\n";
+
+		my $cmd_openxdf = 'cl_rpc openxdf ' .
+			$xdf_filename . ' ' .
+			$xdf_logfilename . ' ' .
+			$xdf_logline;
+		my $status_openxdf = `$cmd_openxdf`;
+		if($? != 0 && $? != 256) {
+			my $cmd_fatal= 'zenity --error' .
+			'--title "CnbiTk Protocol Launcher" ' .
+			'--text "Fatal error: cannot open XDF file\n\n' .
+			'Contact immediately the EPFL CNBI team <support.cnbi@epfl.ch>"';
+			`$cmd_fatal`;
+			die "Fatal: cannot open XDF file\n";
+		}
+
+		my $pid_classifier = 0;
+		if($user_modality eq "online") {
+			my $cmd_classifier = 'cl_init -x ' . $user_xml . ' -scN -B ' . $user_block 
+				. ' -T ' . $user_taskset;
+			$pid_classifier = `$cmd_classifier`;
+			chomp($pid_classifier);
+			die "Error: loop is down" unless($pid_classifier);
+
+			if($pid_classifier == 0) {
+				my $cmd_rcperror= 'zenity --error ' .
+				'--title "CnbiTk Protocol Launcher - Classifier error" ' .
+				'--text "Something went wrong. ' . 
+				'Most probably the classifier is not configured correctly."';
+				`$cmd_rcperror`;
+				die "Error: RPC/Init, probaly the classifier is not configured correctly";
+			}
+			print "Classifier PID is: $pid_classifier\n";
+		}
+
+		if($bin_protocol) {
+			system($bin_protocol); 
+		} else {
+			my $cmd_wait = 'zenity --info ' .
+			'--title "CnbiTk Protocol Launcher" ' .
+			'--text "You are running without a protocol.\n\n' . 
+			'Press Ok to stop the recording"';
+			`$cmd_wait`;
+		}
+		
+		my $cmd_closexdf = 'cl_rpc closexdf';
+		my $status_closexdf = `$cmd_closexdf`;
+		if($? != 0 && $? != 256) {
+			my $cmd_fatal= 'zenity --error' .
+			'--title "CnbiTk Protocol Launcher" ' .
+			'--text "Fatal error: cannot close XDF file\n\n' .
+			'Contact immediately the EPFL CNBI team <support.cnbi@epfl.ch>"';
+			`$cmd_fatal`;
+			die "Fatal: cannot open XDF file\n";
+		}
+
+		if($user_modality eq "online") {
+			my $cmd_stopclassifier = 'cl_rpc terminate ' . $pid_classifier;
+			my $status_stopclassifier =`$cmd_stopclassifier`;
+			my $ret_stopclassifier = $?;
+			
+			if($ret_stopclassifier != 0) {
+				my $cmd_rcperror= 'zenity --question ' .
+				'--title "CnbiTk Protocol Launcher - Classifier error" ' .
+				'--text "Something went wrong. ' . 
+				'Most probably the loop is not running\n\n' . 
+				'Please fix the problem and press Yes to retry ' .
+				'or No to terminate."';
+				`$cmd_rcperror`;
+				die "Error: RPC/Init, probaly the loop is not running";
+			}
+		}
+
+	}
+	$first_time_loop=0;
+}
+
+
+my $user_cleanup = 1;
+if($expert == 1) {
+	my $cmd_cleanup = 'zenity --question ' .
+	'--title "CnbiTk Protocol Launcher - Cleanup" ' .
+	'--text "Would you like to cleanup?\n\n' .
+	'When you cleanup, you erase the loop configuration and ' .
+	'you stop all running classifiers\n\n' .
+	'Normally you should press Yes"';
+	$user_cleanup = `$cmd_cleanup`;
+	if($? == 0) {
+		$user_cleanup = 1;
+	} else {
+		$user_cleanup = 0;
+	}
+}
+if($user_cleanup == 1) {
+
+	my $cmd_unloadconfig = 'cl_init -u -B' . $user_block;
+	my $status_unloadconfig=`$cmd_unloadconfig`;
+	my $ret_unloadconfig = $?;
+
+	if($ret_unloadconfig != 0) {
+		my $cmd_rcperror= 'zenity --question ' .
+		'--title "CnbiTk Protocol Launcher - Configuration error" ' .
+		'--text "Something went wrong. ' . 
+		'Most probably the loop is not running\n\n' . 
+		'Please fix the problem and press Yes to retry ' .
+		'or No to terminate."';
+		`$cmd_rcperror`;
+		die "Error: RPC/Init, probaly the loop is not running";
+	}
+}

@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<cnbiconfig>
+	<!-- Subject Block -->
+	<subject>
+		<id>SUBJECT</id>
+		<age>AGE</age>
+	</subject>
+
+	<!-- Experimenter -->
+	<recording>
+		<experimenter>EXPERIMENTER</experimenter>
+		<experiment>EXPERIMENT</experiment>
+		<project>PROJECT</project>
+		<location>LOCATION</location>
+		<date>DATE</date>
+	</recording>
+
+	<!-- Protocol Block -->
+	<protocol>
+		<mi>
+			<scenes>
+				<wait>5000.00</wait>
+				<begin>5000.00</begin>
+				<end>5000.00</end>
+			</scenes>
+			<trial>
+				<waitmin>3000.00</waitmin>
+				<waitmax>4500.00</waitmax>
+				<fixation>3000.00</fixation>
+				<cue>1000.00</cue>
+				<cfeedback>4000.00</cfeedback>
+				<boom>1000.00</boom>
+				<timeout>0.0</timeout>
+			</trial>
+		</mi>
+	</protocol>
+
+	<!-- Offline Blocks -->
+	<offline>
+		<mi description="Offline MI" protocol="mi_offline">
+			<taskset ttype="mi_bhbfrst">
+				<trials>
+					<mi_both_feet>15</mi_both_feet>
+					<mi_hand_left>15</mi_hand_left>
+					<mi_hand_right>15</mi_hand_right>
+					<mi_rest>15</mi_rest>
+				</trials>
+			</taskset>
+			<taskset ttype="mi_bhbf">
+				<trials>
+					<mi_both_feet>15</mi_both_feet>
+					<mi_both_hands>15</mi_both_hands>
+				</trials>
+			</taskset>
+			<granularity>16</granularity>
+			<threshold>0.85</threshold>
+			<viscosity>0.05</viscosity>
+		</mi>
+	</offline>
+	
+	<!-- Online Block -->
+	<online>
+		<mi description="Online MI" protocol="mi_online">
+			<taskset ttype="mi_bhbf" ctype="mi" classifier="kmi2">
+				<threshold>
+					<mi_both_hands>0.70</mi_both_hands>
+					<mi_both_feet>0.70</mi_both_feet>
+				</threshold>
+				<trials>
+					<mi_both_feet>15</mi_both_feet>
+					<mi_both_hands>15</mi_both_hands>
+				</trials>
+			</taskset>
+			<rejection>0.60</rejection>
+			<integration>0.96</integration>
+		</mi>
+	</online>
+
+	<!-- Classifiers Block -->
+	<classifier>
+		<kmi2>
+			<name>mi</name>
+			<filename>CLASSIFIER.mat</filename>
+		</kmi2>
+	</classifier>
+
+	<!-- Standard classifier type list -->
+	<classifiers>
+		<mi description="Standard MI classifier (pipeline 1)">
+			<tobi>
+				<icvalue>ValueProb</icvalue>
+				<iclabel>LabelBiosig</iclabel>
+				<idfamily>FamilyBiosig</idfamily>
+			</tobi>
+			<ndf>
+				<exec>ndf_mi</exec>
+				<pipe>/pipe1</pipe>
+				<id>/bus</id>
+				<ic>/ctrl1</ic>
+				<directory>./</directory>
+				<include>$HOME/.cnbitk/cnbimi/ndf</include>
+			</ndf>
+		</mi>
+	</classifiers>
+
+	<!-- Standard Task List -->
+	<tasksets>
+		<mi_rlsf description="Motor Imagery 4: Right, Left, Rest, Feet">
+			<class id="0" key="mi_hand_right"/>
+			<class id="1" key="mi_hand_left"/>
+			<class id="2" key="mi_rest"/>
+			<class id="3" key="mi_both_feet"/>
+		</mi_rlsf>
+		<mi_rlbf description="Motor Imagery 3: Right, Left, Feet">
+			<class id="0" key="mi_hand_right"/>
+			<class id="1" key="mi_hand_left"/>
+			<class id="2" key="mi_both_feet"/>
+		</mi_rlbf>
+		<mi_rhlh description="Motor Imagery 2: Right, Left">
+			<class id="0" key="mi_hand_right"/>
+			<class id="1" key="mi_hand_left"/>
+		</mi_rhlh>
+		<mi_lhrh description="Motor Imagery 2: Right, Left"> <!-- TEST -->
+			<class id="0" key="mi_hand_left"/>
+			<class id="1" key="mi_hand_right"/>
+		</mi_lhrh>
+		<mi_rhbf description="Motor Imagery 2: Right, Feet">
+			<class id="0" key="mi_hand_right"/>
+			<class id="1" key="mi_both_feet"/>
+		</mi_rhbf>
+		<mi_bflh description="Motor Imagery 2: Left, Feet">
+			<class id="0" key="mi_both_feet"/>
+			<class id="1" key="mi_hand_left"/>
+		</mi_bflh>
+		<mi_bhbf description="Motor Imagery 2: Hands, Feet">
+			<class id="0" key="mi_both_hands"/>
+			<class id="1" key="mi_both_feet"/>
+		</mi_bhbf>
+		<mi_bfbh description="Motor Imagery 2: Feet, Hands">
+			<class id="0" key="mi_both_feet"/>
+			<class id="1" key="mi_both_hands"/>
+		</mi_bfbh>
+		<mi_bhbfrst description="Motor Imagery 3: Hands, Feet, Rest">
+			<class id="0" key="mi_both_hands"/>
+			<class id="1" key="mi_both_feet"/>
+			<class id="2" key="mi_rest"/>
+		</mi_bhbfrst>
+		<artifact_onoff description="Artifact Detection: On, Off">
+			<class id="0" key="artifact_on"/>
+			<class id="1" key="artifact_off"/>
+		</artifact_onoff>
+	</tasksets>
+	
+	<!-- Standard Task List -->
+	<tasks>
+		<mi_hand_right>
+			<description>Right_Hand_MI</description>
+			<gdfevent>0x0302</gdfevent>
+			<hwtrigger>1</hwtrigger>
+		</mi_hand_right>
+		<mi_hand_left>
+			<description>Left_Hand_MI</description>
+			<gdfevent>0x0301</gdfevent>
+			<hwtrigger>1</hwtrigger>
+		</mi_hand_left>
+		<mi_both_hands>
+			<description>Both_Hands_MI</description>
+			<gdfevent>0x0305</gdfevent>
+			<hwtrigger>1</hwtrigger>
+		</mi_both_hands>
+		<mi_both_feet>
+			<description>Both_Feet_MI</description>
+			<gdfevent>0x0303</gdfevent>
+			<hwtrigger>1</hwtrigger>
+		</mi_both_feet>
+		<mi_rest>
+			<description>Rest_MI</description>
+			<gdfevent>0x030f</gdfevent>
+			<hwtrigger>1</hwtrigger>
+		</mi_rest>
+		<mi_tongue>
+			<description>Tongue_MI</description>
+			<gdfevent>0x0304</gdfevent>
+			<hwtrigger>1</hwtrigger>
+		</mi_tongue>
+		<artifact_on>
+			<description>Artifact_Detection_On</description>
+			<gdfevent>0x010b</gdfevent>
+			<hwtrigger>1</hwtrigger>
+		</artifact_on>
+		<artifact_off>
+			<description>Artifact_Detection_Off</description>
+			<gdfevent>0x010c</gdfevent>
+			<hwtrigger>1</hwtrigger>
+		</artifact_off>
+	</tasks>
+	
+	<!-- Standard Events List -->
+	<events>
+		<gdfevents>
+			<off>0x8000</off>
+			<trial>0x0300</trial>
+			<go>0x0144</go>
+			<nogo>0x0145</nogo>
+			<cue>0x030f</cue>
+			<wait>0x0001</wait>
+			<fixation>0x0312</fixation>
+			<beep>0x0311</beep>
+			<cfeedback>0x030d</cfeedback>
+			<dfeedback>0x030e</dfeedback>
+			<targethit>0x0381</targethit>
+			<targetmiss>0x0382</targetmiss>
+			<timeout>0x0383</timeout>
+			<device>0x6000</device>
+			<cnbi>
+				<inc>0x002</inc>
+				<correct>0x003</correct>
+				<error>0x004</error>
+				<right>0x005</right>
+				<left>0x006</left>
+				<top>0x007</top>
+				<bottom>0x008</bottom>
+				<start>0x009</start>
+				<stop>0x00a</stop>
+				<suspend>0x00b</suspend>
+				<resume>0x00c</resume>
+			</cnbi>
+		</gdfevents>
+		<hwtriggers>
+			<off>1</off>
+			<trial>2</trial>
+			<go>11</go>
+			<nogo>12</nogo>
+			<cue>3</cue>
+			<wait>4</wait>
+			<fixation>5</fixation>
+			<beep>6</beep>
+			<cfeedback>7</cfeedback>
+			<dfeedback>8</dfeedback>
+			<targethit>9</targethit>
+			<targetmiss>10</targetmiss>
+			<timeout>17</timeout>
+			<cnbi>
+				<inc>12</inc>
+				<correct>11</correct>
+				<error>12</error>
+				<right>13</right>
+				<left>14</left>
+				<top>15</top>
+				<bottom>16</bottom>
+			</cnbi>
+		</hwtriggers>
+	</events>
+
+	<!-- Configuration Block -->
+	<configuration>
+		<clloop>
+			<nameserver>127.0.0.1:8000</nameserver>
+		</clloop>
+		<cptriggerforce>4</cptriggerforce> <!-- 1: LPT / 2: Serial Arduino / 3: Beep / 4: Auto-detect (order is LPT > Arduino > Beep) -->
+		<cptriggerlpt> 
+			<port>-1</port>
+			<duration>15</duration>
+			<level>0</level>
+		</cptriggerlpt>
+		<cptriggerserial> 
+			<port>/dev/ttyACM0</port>
+		</cptriggerserial>
+		<csmrengine>
+			<caption>CnbiTk</caption>
+			<width>800</width>
+			<height>600</height>
+			<x>0</x>
+			<y>0</y>
+			<bpp>24</bpp>
+		</csmrengine>
+	</configuration>
+</cnbiconfig>

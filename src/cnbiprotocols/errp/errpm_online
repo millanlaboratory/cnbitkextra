@@ -1,0 +1,2 @@
+#!/bin/sh
+errpm_offline -n
