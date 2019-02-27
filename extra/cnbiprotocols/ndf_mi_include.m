@@ -15,7 +15,7 @@
 % along with this program.  If not, see <http://www.gnu.org/licenses/>.
 function ndf_mi_include()
 
-try
+% try
 	if(isempty(getenv('CNBITKMAT_ROOT')))
 		disp('[ndf_include] $CNBITKMAT_ROOT not found, using default');
 		setenv('CNBITKMAT_ROOT', '/usr/share/cnbiloop/cnbitkmat/');
@@ -37,10 +37,10 @@ try
 	mtpath_include('$CNBITKMAT_ROOT/');
 	mtpath_include('$EEGC3_ROOT/');
 	mtpath_include('$EEGC3_ROOT/modules/smr');
-catch exception
-	disp(['[ndf_include] Exception: ' exception.message ]);
-	disp(exception);
-	disp(exception.stack);
-	disp('[ndf_include] Killing Matlab...');
-	exit;
-end
+% catch exception
+% 	disp(['[ndf_include] Exception: ' exception.message ]);
+% 	disp(exception);
+% 	disp(exception.stack);
+% 	disp('[ndf_include] Killing Matlab...');
+% 	exit;
+% end

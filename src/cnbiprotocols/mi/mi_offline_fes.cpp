@@ -25,6 +25,7 @@
 #include <cnbiconfig/CCfgConfig.hpp>
 #include <cnbiprotocol/CpProbability.hpp>
 #include <cnbiprotocol/CpTriggerFactory.hpp>
+#include <SDL_mixer.h> 
 #include <iostream>
 #define RESET 15
 
@@ -46,6 +47,35 @@ int main(int argc, char *argv[]) {
 	CSmrCopilot copilot;
 	CSmrBars* bars = NULL;
 	bool waitloop = true;
+
+	Mix_Chunk *pret = NULL; 
+	Mix_Chunk *bougez = NULL; 
+	Mix_Chunk *pause = NULL; 
+	Mix_Chunk *repos = NULL;
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 ) { 
+		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() ); 
+		CcLogInfoS("SDL initialization failed ");
+	}
+	pret = Mix_LoadWAV( "/home/cnbi/Music/Pret.wav" ); 
+	if( pret == NULL ) { 
+		printf( "Failed to load pret sound effect! SDL_mixer Error: %s\n", Mix_GetError() ); 
+		CcLogInfoS("Loading pret sound file failed");
+	}
+	bougez = Mix_LoadWAV( "/home/cnbi/Music/Bougez.wav" ); 
+	if( bougez == NULL ) { 
+		printf( "Failed to load bougez sound effect! SDL_mixer Error: %s\n", Mix_GetError() ); 
+		CcLogInfoS("Loading bougez sound file failed");
+	}
+	pause = Mix_LoadWAV( "/home/cnbi/Music/Pause.wav" ); 
+	if( pause == NULL ) { 
+		printf( "Failed to load pause sound effect! SDL_mixer Error: %s\n", Mix_GetError() ); 
+		CcLogInfoS("Loading pause sound file failed");
+	}
+	repos = Mix_LoadWAV( "/home/cnbi/Music/Repos.wav" ); 
+	if( repos == NULL ) { 
+		printf( "Failed to load repos sound effect! SDL_mixer Error: %s\n", Mix_GetError() ); 
+		CcLogInfoS("Loading repos sound file failed");
+	}
 	
 	// Tools for protocol
 	dtmi p_dt;
@@ -206,7 +236,8 @@ int main(int argc, char *argv[]) {
 
 		/* Wait */
 		//system("speech \"Pause\"");
-		system("canberra-gtk-play -f /home/cnbi/Music/Pause.wav");
+		Mix_PlayChannel( -1, pause, 0 );
+		//system("canberra-gtk-play -f /home/cnbi/Music/Pause.wav");
 		bars->ScreenSync(p_hwt.wait);
 		idm.SetEvent(p_gdf.wait);
 		id.SetMessage(&ids);
@@ -221,7 +252,8 @@ int main(int argc, char *argv[]) {
 		id.SetMessage(&ids);
 		bars->FixationCue(CSmrBars::DrawFixation);
 		//system("speech \"Prêt\"");
-		system("canberra-gtk-play -f /home/cnbi/Music/Pret.wav");
+		Mix_PlayChannel( -1, pret, 0 );
+		//system("canberra-gtk-play -f /home/cnbi/Music/Pret.wav");
 		CcTime::Sleep(p_dt.fixation);
 		idm.SetEvent(p_gdf.fixation + p_gdf.off);
 		id.SetMessage(&ids);
@@ -233,11 +265,13 @@ int main(int argc, char *argv[]) {
 		bars->FixationCue(CSmrBars::DrawCue, idx_class);
 		if (idx_class == 0){
 			//system("speech \"Bougez\"");
-			system("canberra-gtk-play -f /home/cnbi/Music/Bougez.wav");
+			Mix_PlayChannel( -1, bougez, 0 );
+			//system("canberra-gtk-play -f /home/cnbi/Music/Bougez.wav");
 		}
 		else{
 			//system("speech \"Repos\"");
-			system("canberra-gtk-play -f /home/cnbi/Music/Repos.wav");
+			Mix_PlayChannel( -1, repos, 0 );
+			//system("canberra-gtk-play -f /home/cnbi/Music/Repos.wav");
 		}
 		CcTime::Sleep(p_dt.cue);
 		idm.SetEvent(t_gdf[idx_class] + p_gdf.off);
@@ -318,5 +352,10 @@ shutdown:
 		delete(t_hwt);
 	if(t_gdf != NULL)
 		delete(t_gdf);
+	Mix_FreeChunk(pret);
+	Mix_FreeChunk(pause);
+	Mix_FreeChunk(bougez);
+	Mix_FreeChunk(repos);
+	Mix_Quit();
 	CcCore::Exit(0);
 }

@@ -251,6 +251,10 @@ bool mi_get_devmarkers(CCfgConfig* config, devmi* dev) {
 		dev->suspend = config->BranchEx()->QuickGDFIntEx("gdfevents/cnbi/suspend");
 		dev->resume = config->BranchEx()->QuickGDFIntEx("gdfevents/cnbi/resume");
 		dev->device = config->BranchEx()->QuickGDFIntEx("gdfevents/device");
+		dev->correct = config->BranchEx()->QuickGDFIntEx("gdfevents/cnbi/correct");
+		dev->threequartercorrect = config->BranchEx()->QuickGDFIntEx("gdfevents/cnbi/threequartercorrect");
+		dev->halfcorrect = config->BranchEx()->QuickGDFIntEx("gdfevents/cnbi/halfcorrect");
+		dev->belowhalfcorrect = config->BranchEx()->QuickGDFIntEx("gdfevents/cnbi/belowhalfcorrect");
 		
 	} catch(XMLException e) {
 		CcLogException(e.Info());
