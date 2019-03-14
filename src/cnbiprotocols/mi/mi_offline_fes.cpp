@@ -298,7 +298,6 @@ int main(int argc, char *argv[]) {
 		}
 		CcLogInfo("Trial done");
 	}
-system("speech \"Fin de la session. Bravo.\"");
 shutdown:
 	id.Detach();
 	tobiIDDev.Detach();

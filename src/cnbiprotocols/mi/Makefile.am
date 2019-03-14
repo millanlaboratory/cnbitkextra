@@ -3,7 +3,9 @@ AM_CXXFLAGS = $(CXXFLAGS) -I$(top_srcdir)/src -std=c++0x
 bin_PROGRAMS = mi_online \
 	       mi_offline \
 	       mi_control \
-	       mi_tactile_online
+	       mi_tactile_online \
+	       mi_online_fes \
+	       mi_offline_fes 
 
 noinst_PROGRAMS=mi_online_original
 
@@ -20,6 +22,20 @@ mi_online_LDADD = $(builddir)/../../cnbismr/libcnbismr.la \
 
 mi_offline_SOURCES = mi_offline.cpp mi_utilities.hpp
 mi_offline_LDADD = $(builddir)/../../cnbismr/libcnbismr.la \
+				   $(builddir)/../../cnbiprotocol/libcnbiprotocol.la \
+				  -lcnbicore -lcnbiloop -ltobicore -ltobiid -ltobiic \
+				  -ldrawtk -llpttrigger\
+				  -lSDL_mixer -lcnbiconfig
+
+mi_online_fes_SOURCES = mi_online_fes.cpp mi_utilities.hpp
+mi_online_fes_LDADD = $(builddir)/../../cnbismr/libcnbismr.la \
+				  $(builddir)/../../cnbiprotocol/libcnbiprotocol.la \
+				  -lcnbicore -lcnbiloop -ltobicore -ltobiid -ltobiic \
+				  -ldrawtk -llpttrigger\
+				  -lSDL_mixer -lcnbiconfig
+
+mi_offline_fes_SOURCES = mi_offline_fes.cpp mi_utilities.hpp
+mi_offline_fes_LDADD = $(builddir)/../../cnbismr/libcnbismr.la \
 				   $(builddir)/../../cnbiprotocol/libcnbiprotocol.la \
 				  -lcnbicore -lcnbiloop -ltobicore -ltobiid -ltobiic \
 				  -ldrawtk -llpttrigger\
